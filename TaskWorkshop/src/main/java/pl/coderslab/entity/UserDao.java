@@ -3,6 +3,7 @@ package pl.coderslab.entity;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.*;
+import java.util.Arrays;
 
 
 public class UserDao {
@@ -16,6 +17,11 @@ public class UserDao {
 
     private static final String GET_ALL_USER_DATA =
             "SELECT * FROM users WHERE id = ?";
+
+    private static final String GET_ALL_DB_DATA =
+            "SELECT * FROM users";
+    private static final String GET_ALL_IDS =
+            "SELECT id FROM users";
 
 
     // arguments: id
@@ -93,8 +99,67 @@ public class UserDao {
         }
     }
 
+    private static User[] addToArray(User u, User[] users) {
+        User[] tmpUsers = Arrays.copyOf(users, users.length + 1); // Tworzymy kopię tablicy powiększoną o 1.
+        tmpUsers[users.length] = u; // Dodajemy obiekt na ostatniej pozycji.
+        return tmpUsers; // Zwracamy nową tablicę.
+    }
+
+    public static User[] findAll() {
+        User[] users = new User[0];
+        try (Connection conn = DbUtil.connect()) {
+            PreparedStatement statement = conn.prepareStatement(GET_ALL_DB_DATA);
+
+            ResultSet countOfSet = statement.executeQuery();
+            int counter = 0;
+            while (countOfSet.next()) {
+                counter++;
+            }
+            int[] numberOfIDs = new int[counter];
+            PreparedStatement getThoseIDs = conn.prepareStatement(GET_ALL_IDS);
+            ResultSet countOfIDs = getThoseIDs.executeQuery();
+//            while (countOfIDs.next()) {
+            for (int i = 0; i < counter; i++) {
+                numberOfIDs[i] = countOfIDs.getInt(1);
+            }
+//            }
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                for (int i = 0; i < counter; i++) {
+                    int id = 0;
+
+                    users[i] = read(numberOfIDs[i]);
+
+
+                    addToArray(users[i], users);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return users;
+    }
+
 
     private static String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt());
     }
+
+
+    private static int countOfIDs() {
+        try (Connection conn = DbUtil.connect()) {
+            PreparedStatement statement = conn.prepareStatement(GET_ALL_IDS);
+            ResultSet countOfSet = statement.executeQuery();
+            int counter = 0;
+            while (countOfSet.next()) {
+                counter++;
+            }
+            return counter;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
 }
