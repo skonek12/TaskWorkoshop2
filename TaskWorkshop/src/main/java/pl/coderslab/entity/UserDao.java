@@ -79,6 +79,20 @@ public class UserDao {
 
     }
 
+    public static void delete(int userId) {
+
+        try (Connection conn = DbUtil.connect()) {
+            try (PreparedStatement statement = conn.prepareStatement(DELETE_QUERY)) {
+                statement.setInt(1, userId);
+                statement.executeUpdate();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
 
     private static String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt());
