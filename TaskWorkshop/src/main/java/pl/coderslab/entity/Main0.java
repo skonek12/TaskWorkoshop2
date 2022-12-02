@@ -13,7 +13,12 @@ public class Main0 {
 //        User user = UserDao.read(3);
 //        System.out.println(user.toString());
 
+UserDao userDao = new UserDao();
 
+User user = UserDao.read(3);
+
+user.setUserName("Kastorama");
+userDao.update(user);
 
     }
 
